@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WildGuard AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #0f0f0f; color: #eee; font-family: 'Segoe UI', sans-serif; }
+
+        /* Tabs */
+        .nav-pills .nav-link { color: #aaa; border: 1px solid #333; margin: 5px; border-radius: 8px; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; color: #fff; }
+
+        /* Monitor */
+        .monitor-window { background: #1a1a1a; border: 2px solid #2a2a2a; border-radius: 12px; min-height: 400px; }
+
+        /* Status */
+        .status-safe    { color: #2ecc71; border-color: #2ecc71 !important; }
+        .status-warning { color: #f39c12; border-color: #f39c12 !important; }
+        .status-danger  { color: #e74c3c; border-color: #e74c3c !important; }
+
+        /* Stats bar */
+        #stats-bar { font-family: monospace; background: #111; border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; }
+
+        /* Animal name badges */
+        .animal-badge {
+            display: inline-block;
+            background: #0d6efd22;
+            color: #74aaff;
+            border: 1px solid #0d6efd55;
+            border-radius: 20px;
+            padding: 1px 10px;
+            font-size: 0.78rem;
+            margin: 2px 2px;
+        }
+        #animal-names-wrap { min-height: 28px; }
+
+        /* Alert Panel */
+        #alert-panel { background: #111; border: 1px solid #2a2a2a; border-radius: 12px; padding: 16px; }
+        #alert-panel h5 { color: #aaa; letter-spacing: 1px; text-transform: uppercase; font-size: 0.85rem; }
+
+        /* Summary */
+        .summary-box { background: #1a1a1a; border-radius: 8px; padding: 10px 16px; text-align: center; border: 1px solid #2a2a2a; }
+        .summary-box .num { font-size: 1.8rem; font-weight: bold; }
+        .summary-box .lbl { font-size: 0.75rem; color: #777; text-transform: uppercase; }
+
+        /* Filter buttons */
+        .filter-btn { font-size: 0.78rem; border-radius: 20px; padding: 3px 12px; }
+
+        /* Log table */
+        #log-table-wrap { max-height: 340px; overflow-y: auto; }
+        table { font-size: 0.82rem; width: 100%; border-collapse: collapse; }
+        thead th { position: sticky; top: 0; background: #1a1a1a; color: #888; padding: 6px 10px; border-bottom: 1px solid #333; }
+        tbody td { padding: 6px 10px; border-bottom: 1px solid #1e1e1e; vertical-align: middle; }
+        tbody tr:hover { background: #1e1e1e; }
+
+        /* State badges in table */
+        .badge-DANGER  { background: #e74c3c22; color: #e74c3c; border: 1px solid #e74c3c55; border-radius: 6px; padding: 2px 8px; }
+        .badge-WARNING { background: #f39c1222; color: #f39c12; border: 1px solid #f39c1255; border-radius: 6px; padding: 2px 8px; }
+        .badge-SAFE    { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7155; border-radius: 6px; padding: 2px 8px; }
+
+        /* Scrollbar */
+        #log-table-wrap::-webkit-scrollbar { width: 6px; }
+        #log-table-wrap::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        /* Live pulse */
+        .live-dot { display: inline-block; width: 10px; height: 10px; background: #e74c3c;
+                    border-radius: 50%; animation: pulse 1.2s infinite; margin-right: 5px; }
+        @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
+    </style>
+</head>
+<body class="container-fluid py-4 px-4">
+
+    <h2 class="text-center mb-1">🐾 WildGuard AI</h2>
+    <p class="text-center text-secondary mb-4" style="font-size:0.85rem;">Real-Time Wildlife Conflict Prediction</p>
+
+    <!-- Mode Tabs -->
+    <ul class="nav nav-pills justify-content-center mb-4">
+        <li class="nav-item"><a class="nav-link {% if mode == 'photo' %}active{% endif %}" href="/?mode=photo">📷 Upload Photo</a></li>
+        <li class="nav-item"><a class="nav-link {% if mode == 'video' %}active{% endif %}" href="/?mode=video">🎥 Upload Video</a></li>
+        <li class="nav-item"><a class="nav-link {% if mode == 'live' %}active{% endif %}" href="/?mode=live">🔴 Live Webcam</a></li>
+    </ul>
+
+    <div class="row g-4">
+
+        <!-- ====== LEFT: Monitor ====== -->
+        <div class="col-lg-7">
+            <div class="monitor-window p-3 text-center">
+
+                {% if mode == 'photo' %}
+                    <h5 class="mb-3">📷 Photo Analysis</h5>
+                    <form method="POST" enctype="multipart/form-data" class="mb-3">
+                        <input type="file" name="file" accept="image/*" class="form-control mb-2 bg-dark text-light border-secondary">
+                        <button type="submit" class="btn btn-primary w-100">Analyze Image</button>
+                    </form>
+                    <!-- Give the image a stable id so clearSystem() can remove it -->
+                    {% if processed_img %}
+                        <img id="processed-image"
+                             src="{{ url_for('uploaded_file', filename=processed_img) }}"
+                             class="img-fluid rounded">
+                    {% else %}
+                        <!-- Placeholder so the id exists even before upload -->
+                        <img id="processed-image" src="" style="display:none;" class="img-fluid rounded">
+                    {% endif %}
+
+                {% elif mode == 'video' %}
+                    <h5 class="mb-3">🎥 Video Analysis</h5>
+                    <form method="POST" enctype="multipart/form-data" class="mb-3">
+                        <input type="file" name="file" accept="video/*" class="form-control mb-2 bg-dark text-light border-secondary">
+                        <button type="submit" class="btn btn-primary w-100">Process Video</button>
+                    </form>
+                    {% if video_path %}
+                        <img id="video-stream"
+                             src="{{ url_for('video_feed', filename=video_path) }}"
+                             class="img-fluid rounded">
+                    {% endif %}
+
+                {% elif mode == 'live' %}
+                    <h5 class="mb-3"><span class="live-dot"></span>Live Stream</h5>
+                    <img id="video-stream"
+                         src="{{ url_for('video_feed', filename='live') }}"
+                         class="img-fluid rounded border border-danger">
+                {% endif %}
+
+                <!-- Status message -->
+                <div id="status" class="mt-3 p-3 border rounded h5 status-safe">Checking...</div>
+
+                <!-- Animal names row -->
+                <div id="animal-names-wrap" class="mt-2">
+                    <span id="animal-names-badges"></span>
+                </div>
+
+                <!-- Stats bar -->
+                <div id="stats-bar" class="mt-2 d-flex justify-content-around align-items-center flex-wrap gap-2">
+                    <span>FPS: <strong id="fps">0</strong></span>
+                    <span>Animals: <strong id="detected">0</strong></span>
+                    <span>Border Alerts: <strong id="border-alerts">0</strong></span>
+                </div>
+
+                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="clearSystem()">🧹 Clear</button>
+            </div>
+        </div>
+
+        <!-- ====== RIGHT: Alert Panel ====== -->
+        <div class="col-lg-5">
+            <div id="alert-panel">
+                <h5 class="mb-3">📋 Alert Log Panel</h5>
+
+                <!-- Summary cards -->
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <div class="summary-box">
+                            <div class="num text-light" id="sum-total">—</div>
+                            <div class="lbl">Total</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="summary-box">
+                            <div class="num" style="color:#e74c3c" id="sum-danger">—</div>
+                            <div class="lbl">Danger</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="summary-box">
+                            <div class="num" style="color:#f39c12" id="sum-warning">—</div>
+                            <div class="lbl">Warning</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter buttons -->
+                <div class="mb-2 d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-light  filter-btn" onclick="setFilter('ALL',     this)">All</button>
+                    <button class="btn btn-sm btn-outline-danger  filter-btn" onclick="setFilter('DANGER',  this)">🚨 Danger</button>
+                    <button class="btn btn-sm btn-outline-warning filter-btn" onclick="setFilter('WARNING', this)">⚠️ Warning</button>
+                    <button class="btn btn-sm btn-outline-success filter-btn" onclick="setFilter('SAFE',    this)">✅ Safe</button>
+                    <button class="btn btn-sm btn-outline-secondary filter-btn ms-auto" onclick="clearLogs()" title="Clear all DB logs">🗑 Clear DB</button>
+                </div>
+
+                <!-- Log table -->
+                <div id="log-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Timestamp</th>
+                                <th>State</th>
+                                <th>Animals</th>
+                                <th>Border↑</th>
+                                <th>FPS</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-body">
+                            <tr><td colspan="7" class="text-center text-secondary py-4">Loading logs…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p id="log-count" class="text-secondary mt-2 mb-0" style="font-size:0.78rem;"></p>
+            </div>
+        </div>
+
+    </div><!-- /row -->
+
+    <script>
+        let currentFilter = 'ALL';
+
+        // ─── Live Stats Polling ───────────────────────────────────────
+        async function updateStats() {
+            try {
+                const res  = await fetch('/alert');
+                const data = await res.json();
+
+                // Status bar
+                const statusEl = document.getElementById('status');
+                statusEl.innerText = data.alert_msg;
+                if      (data.alert_msg.includes("Safe"))    statusEl.className = "mt-3 p-3 border rounded h5 status-safe";
+                else if (data.alert_msg.includes("⚠️"))      statusEl.className = "mt-3 p-3 border rounded h5 status-warning";
+                else                                          statusEl.className = "mt-3 p-3 border rounded h5 status-danger";
+
+                // Counts
+                document.getElementById('fps').innerText           = parseFloat(data.fps).toFixed(1);
+                document.getElementById('detected').innerText      = data.detected;
+                document.getElementById('border-alerts').innerText = data.border_alerts;
+
+                // Animal name badges
+                const badgeWrap = document.getElementById('animal-names-badges');
+                if (data.animal_names && data.animal_names.length > 0) {
+                    // Count occurrences of each species
+                    const counts = {};
+                    data.animal_names.forEach(n => { counts[n] = (counts[n] || 0) + 1; });
+                    badgeWrap.innerHTML = Object.entries(counts)
+                        .map(([name, cnt]) =>
+                            `<span class="animal-badge">${name}${cnt > 1 ? ' ×' + cnt : ''}</span>`
+                        ).join('');
+                } else {
+                    badgeWrap.innerHTML = '<span class="text-secondary" style="font-size:0.8rem;">No animals detected</span>';
+                }
+
+            } catch (err) {
+                console.error("Stats error:", err);
+            }
+        }
+
+        // ─── DB Log Polling ───────────────────────────────────────────
+        async function fetchLogs() {
+            try {
+                const res  = await fetch(`/logs?limit=100&state=${currentFilter}`);
+                const logs = await res.json();
+                renderLogs(logs);
+            } catch (err) { console.error("Logs error:", err); }
+        }
+
+        async function fetchSummary() {
+            try {
+                const res  = await fetch('/logs/summary');
+                const data = await res.json();
+                document.getElementById('sum-total').innerText   = data.total;
+                document.getElementById('sum-danger').innerText  = data.danger;
+                document.getElementById('sum-warning').innerText = data.warning;
+            } catch (err) { console.error("Summary error:", err); }
+        }
+
+        function renderLogs(logs) {
+            const tbody = document.getElementById('log-body');
+            if (!logs.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-4">No records found.</td></tr>';
+                document.getElementById('log-count').innerText = '';
+                return;
+            }
+            tbody.innerHTML = logs.map(r => `
+                <tr>
+                    <td class="text-secondary">${r.id}</td>
+                    <td>${r.timestamp}</td>
+                    <td><span class="badge-${r.state}">${r.state}</span></td>
+                    <td title="${r.animal_names || '—'}">${formatAnimals(r.animal_names)}</td>
+                    <td>${r.border_alerts}</td>
+                    <td>${typeof r.fps === 'number' ? r.fps.toFixed(1) : r.fps}</td>
+                    <td class="text-secondary" title="${r.source}">${truncate(r.source, 14)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('log-count').innerText =
+                `Showing ${logs.length} record${logs.length !== 1 ? 's' : ''} · Filter: ${currentFilter}`;
+        }
+
+        /** Render animal_names string (e.g. "Elephant, Tiger") as compact badges */
+        function formatAnimals(namesStr) {
+            if (!namesStr) return '<span class="text-secondary">—</span>';
+            const counts = {};
+            namesStr.split(',').map(s => s.trim()).filter(Boolean)
+                    .forEach(n => { counts[n] = (counts[n] || 0) + 1; });
+            return Object.entries(counts)
+                .map(([n, c]) => `<span class="animal-badge">${n}${c > 1 ? ' ×' + c : ''}</span>`)
+                .join('');
+        }
+
+        function truncate(str, n) {
+            return str && str.length > n ? str.substring(0, n) + '…' : (str || '—');
+        }
+
+        // ─── Filter ──────────────────────────────────────────────────
+        function setFilter(state, btn) {
+            currentFilter = state;
+            document.querySelectorAll('.filter-btn').forEach(b => b.style.fontWeight = 'normal');
+            btn.style.fontWeight = 'bold';
+            fetchLogs();
+        }
+
+        // ─── Clear frontend (image + stats) ──────────────────────────
+        async function clearSystem() {
+            await fetch('/clear', { method: 'POST' });
+
+            // Reset status
+            const statusEl = document.getElementById('status');
+            statusEl.innerText   = "✅ Area Safe";
+            statusEl.className   = "mt-3 p-3 border rounded h5 status-safe";
+
+            // Reset counts
+            document.getElementById('fps').innerText           = "0";
+            document.getElementById('detected').innerText      = "0";
+            document.getElementById('border-alerts').innerText = "0";
+            document.getElementById('animal-names-badges').innerHTML =
+                '<span class="text-secondary" style="font-size:0.8rem;">No animals detected</span>';
+
+            // ── FIX: clear processed photo ──
+            const processedImg = document.getElementById('processed-image');
+            if (processedImg) {
+                processedImg.src = '';
+                processedImg.style.display = 'none';
+            }
+
+            // Clear video stream
+            const videoStream = document.getElementById('video-stream');
+            if (videoStream) videoStream.remove();
+
+            // Reset file input
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = '';
+        }
+
+        // ─── Clear DB ────────────────────────────────────────────────
+        async function clearLogs() {
+            if (!confirm("Delete ALL alert logs from the database? This cannot be undone.")) return;
+            await fetch('/logs/clear', { method: 'POST' });
+            fetchLogs();
+            fetchSummary();
+        }
+
+        // ─── Polling ─────────────────────────────────────────────────
+        setInterval(updateStats, 500);                          // live stats every 500 ms
+        setInterval(() => { fetchLogs(); fetchSummary(); }, 3000); // DB refresh every 3 s
+
+        // Initial load
+        updateStats();
+        fetchLogs();
+        fetchSummary();
+    </script>
+</body>
+</html>
