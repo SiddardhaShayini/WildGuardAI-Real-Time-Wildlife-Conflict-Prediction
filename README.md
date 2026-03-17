@@ -305,6 +305,10 @@ WildGuardAI demonstrates superior performance in real-world wildlife monitoring 
 - **Deployability:** Lightweight footprint enables edge deployment on resource-constrained devices
 - **Scalability:** Modular architecture supports integration with multiple camera feeds and alert systems
 
+![Screenshot 1](https://github.com/SiddardhaShayini/WildGuardAI-Real-Time-Wildlife-Conflict-Prediction/blob/main/uploads/processed_bear_image_040.jpg)
+![Screenshot 2](https://github.com/SiddardhaShayini/WildGuardAI-Real-Time-Wildlife-Conflict-Prediction/blob/main/uploads/processed_leopard_image_024.jpg)
+
+
 ## Limitations & Scope
 
 **Current Scope:**
