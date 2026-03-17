@@ -140,14 +140,14 @@ numpy>=1.24.0
 ### Download Pre-trained Model
 ```bash
 # Download YOLOv12n weights trained on wildlife dataset
-# Place best.pt in the models/ directory
+# Place best_augmented.pt in the models/ directory
 ```
 
 ## Usage
 
 ### 1. Run the Flask Application
 ```bash
-python app.py
+python flask_app.py
 ```
 The application will start at `http://localhost:5000`
 
@@ -244,28 +244,23 @@ The application will start at `http://localhost:5000`
 
 ```
 WildGuardAI/
-├── models/
-│   ├── best.pt                    # Pre-trained YOLOv12n weights
-│   └── tracking_config.yaml       # BoT-SORT configuration
-├── data/
-│   ├── videos/                    # Sample video files
-│   ├── images/                    # Sample images
-│   └── dataset/                   # Training dataset (Roboflow)
-├── app.py                         # Flask application
-├── inference.py                   # Detection & tracking engine
-├── conflict_engine.py             # Threat Index calculation
-├── database.py                    # SQLite operations
 ├── templates/
-│   ├── index.html                # Main dashboard
-│   ├── upload.html               # Upload interface
-│   └── results.html              # Results display
-├── static/
-│   ├── css/
-│   ├── js/
-│   └── images/
-├── requirements.txt              # Python dependencies
-├── config.yaml                   # Configuration parameters
-└── README.md                      # This file
+│   └── index.html                 # Main dashboard
+├── test_images/
+│   └── # Sample image and video files
+├── trained_models/
+│   └── # Jupyter notebooks and models
+├── training/
+│   └── # training visualizations
+├── uploads/
+│   └── # uploaded image and video files
+├── LICENSE
+├── README.md
+├── best.pt                        # Pre-trained YOLOv12n weights
+├── best_augmented.pt              # Pre-trained YOLOv12n augmented weights
+├── flask_app.py                   # Flask application
+├── requirements.txt               # Python dependencies
+└── wildguard_alerts.db            # SQLite operations
 ```
 
 ## Performance Comparison
@@ -323,52 +318,6 @@ WildGuardAI demonstrates superior performance in real-world wildlife monitoring 
 - Jetson Nano edge deployment (architecture optimized for this)
 - Multi-camera coordination and sensor fusion
 
-## Contributing
-
-This is an academic research project. If you're interested in contributing or extending this work, please feel free to fork the repository and submit pull requests.
-
-## Citation
-
-If you use WildGuardAI in your research, please cite as:
-
-```bibtex
-@project{wildguardai2025,
-  title={WildGuardAI: Real-Time Wildlife Conflict Prediction},
-  author={Siddardha, S. and Others},
-  year={2025},
-  url={https://github.com/SiddardhaShayini/WildGuardAI-Real-Time-Wildlife-Conflict-Prediction}
-}
-```
-
-## References
-
-[1] Mughal, A. B., et al. (2025). Deep Learning for Dynamic Wildlife Monitoring: A Real-Time Approach. IEEE Access, 13.
-
-[2] Ke, W., et al. (2025). IECA-YOLOv7: Lightweight Model with Enhanced Attention for Aerial Wildlife Detection. Scientific Reports, 15.
-
-[3] Dave, B., et al. (2023). Wild Animal Detection Using YOLOv8. Procedia Computer Science, 230, 100–111.
-
-[4] Dertien, J. S., et al. (2023). Mitigating Human–Wildlife Conflict Using Real-Time Camera-Based Alert System. BioScience, 2023.
-
-[5] Pathak, A. A., et al. (2024). Leveraging AI to Reduce Human–Animal Conflict in India. Communications of ASIS, 55, 336–350.
-
-[6] Wang, C.-Y., et al. (2024). YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information. arXiv.
-
-[7] Deepika, R., et al. (2024). Agro Guard Edge AI — IoT Framework for Wildlife Intrusion Detection. J. Electrical Eng. & Automation, 6(4).
-
-[8] Feng, L., et al. (2021). Action Recognition Using a Spatial-Temporal Network for Wild Felines. Animals, 11(2), 485.
-
-[9] Chen, H., et al. (2021). Robust Visual Tracking with Reliable Object Information and Kalman Filter. Sensors, 21(3), 889.
-
-[10] Yoon, K., et al. (2019). Data Association for Multi-Object Tracking via Deep Neural Networks. Sensors, 19(3), 559.
-
-[11] Carreira, J., & Zisserman, A. (2017). Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset. CVPR.
-
-[12] Dataset: Wild Animals Computer Vision Dataset. Roboflow Universe.
-
-## Acknowledgments
-
-This project was developed as an academic research initiative. We acknowledge the Roboflow community for providing the Wild Animals dataset and the open-source communities for PyTorch, YOLOv12, and BoT-SORT.
 
 ## License
 
@@ -376,6 +325,5 @@ This project is licensed under the MIT License – see LICENSE file for details.
 
 ---
 
-**For questions or suggestions, please open an issue or contact the project maintainers.**
-
-**Last Updated:** March 2025
+## 👨‍💻 Developer
+**Siddardha Shayini** 
