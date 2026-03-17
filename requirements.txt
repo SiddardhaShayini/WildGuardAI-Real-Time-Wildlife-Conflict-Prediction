@@ -1,5 +1,33 @@
-ultralytics 
-streamlit 
-opencv-python 
-pillow 
-numpy
+# Deep Learning & Computer Vision
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0
+opencv-python>=4.8.0
+Pillow>=9.5.0
+numpy>=1.24.0
+
+# Tracking & Detection Dependencies
+scikit-learn>=1.3.0
+scipy>=1.11.0
+
+# Backend & API
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+
+# Database
+# sqlite3 is built-in with Python 3.9+
+
+# Data Processing & Analysis
+pandas>=1.5.0
+matplotlib>=3.7.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+Werkzeug>=2.3.0
+
+# Optional: For SMS/IoT alerts (future feature)
+# twilio>=8.10.0  # Uncomment when implementing SMS notifications
+
+# Optional: For visualization improvements
+# grad-cam  # For model interpretability (mentioned in PPT)
